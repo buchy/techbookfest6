@@ -137,7 +137,8 @@
         },
         {
             "id": "M25",
-            "name": "池袋"
+            "name": "池袋",
+            "image": "https://buchy.github.io/techbookfest6/images/M25.jpg"
         }
     ]
 }
