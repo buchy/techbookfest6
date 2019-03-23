@@ -51,9 +51,39 @@ class MyApp extends StatelessWidget {
             return Divider(color: Colors.blue);
           }
           return ListTile(
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (BuildContext context) => stationDialog(
+                      MediaQuery.of(context).size.width * 0.6,
+                      stationList[index ~/ 2].name,
+                      stationList[index ~/ 2].image));
+            },
             title: Text(stationList[index ~/ 2].name,
                 style: TextStyle(fontSize: 22.0)),
           );
         });
+  }
+
+  AlertDialog stationDialog(
+      final double size, final String name, final String url) {
+    return AlertDialog(
+      title: Text(
+        name,
+        style: TextStyle(color: Colors.black, fontSize: 22.0),
+        textAlign: TextAlign.center,
+      ),
+      content: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          image: DecorationImage(
+            fit: BoxFit.fill,
+            image: NetworkImage(url),
+          ),
+        ),
+      ),
+    );
   }
 }
