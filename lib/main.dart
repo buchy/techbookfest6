@@ -50,14 +50,31 @@ class MyApp extends StatelessWidget {
           if (index.isOdd) {
             return Divider(color: Colors.blue);
           }
+          final size = MediaQuery.of(context).size.width * 0.6;
+          final station = stationList[index ~/ 2];
           return ListTile(
             onTap: () {
               showDialog(
-                  context: context,
-                  builder: (BuildContext context) => stationDialog(
-                      MediaQuery.of(context).size.width * 0.6,
-                      stationList[index ~/ 2].name,
-                      stationList[index ~/ 2].image));
+                context: context,
+                builder: (BuildContext context) => FutureBuilder(
+                    future: stationRepository.getCheckInStatus(station.id),
+                    builder:
+                        (BuildContext context, AsyncSnapshot<bool> snapshot) {
+                      final hasData = snapshot.hasData;
+                      if (!hasData) {
+                        return loadingWidget();
+                      }
+                      if (snapshot.data) {
+                        return stationDialog(context, size, station, true);
+                      }
+                      return stationDialog(context, size, station, false);
+                    }),
+              ).then((checkIn) {
+                if (checkIn != null && checkIn) {
+                  stationRepository
+                      .saveCheckInStation(stationList[index ~/ 2].id);
+                }
+              });
             },
             title: Text(stationList[index ~/ 2].name,
                 style: TextStyle(fontSize: 22.0)),
@@ -65,25 +82,33 @@ class MyApp extends StatelessWidget {
         });
   }
 
-  AlertDialog stationDialog(
-      final double size, final String name, final String url) {
+  AlertDialog stationDialog(final BuildContext context, final double size,
+      final Station station, final bool checkIn) {
+    final List<Widget> actions = [];
+    final List<Widget> title = [
+      Text(station.name, style: TextStyle(color: Colors.black, fontSize: 22.0))
+    ];
+    if (checkIn) {
+      title.add(Icon(Icons.check_circle, color: Colors.green));
+    } else {
+      actions.add(FlatButton(
+          child: Text('チェックイン'),
+          onPressed: () {
+            Navigator.pop(context, true);
+          }));
+    }
     return AlertDialog(
-      title: Text(
-        name,
-        style: TextStyle(color: Colors.black, fontSize: 22.0),
-        textAlign: TextAlign.center,
-      ),
+      title: Row(children: title, mainAxisAlignment: MainAxisAlignment.center),
       content: Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           image: DecorationImage(
-            fit: BoxFit.fill,
-            image: NetworkImage(url),
-          ),
+              fit: BoxFit.fill, image: NetworkImage(station.image)),
         ),
       ),
+      actions: actions,
     );
   }
 }
